@@ -12,7 +12,6 @@ namespace SimpleSolitare.DependencyInjection
             services.AddTransient<IStreamWriterWrapFactory, StreamWriterWrapFactory>();
 
             // Application
-            services.AddSingleton<ILoggerFactoryWrap, LoggerFactoryWrap>();
             services.AddTransient<ICommandLineProcessor, CommandLineProcessor>();
             services.AddTransient<IDeckProvider, DeckProvider>();
             services.AddTransient<IRngFactory, RngFactory>();

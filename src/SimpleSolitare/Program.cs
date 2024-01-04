@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SimpleSolitare.CommandLine;
 using SimpleSolitare.DependencyInjection;
-using SimpleSolitare.Wraps;
 
 namespace SimpleSolitare
 {
@@ -41,9 +40,6 @@ namespace SimpleSolitare
         {
             var serviceProvider = RegisterAppServices();
 
-            using var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactoryWrap>();
-            var logger = loggerFactory.CreateLogger<Program>();
-
             var commandLineProcessor = serviceProvider.GetRequiredService<ICommandLineProcessor>();
             var deckProvider = serviceProvider.GetRequiredService<IDeckProvider>();
             var player = serviceProvider.GetRequiredService<IPlayer>();
@@ -52,10 +48,10 @@ namespace SimpleSolitare
 
             var commandLineArguments = commandLineProcessor.Process(args) ?? throw new Exception($"Command line arguments object was null.");
 
-            RunGames(logger, deckProvider, player, runner, gameResultWriter, commandLineArguments);
+            RunGames(deckProvider, player, runner, gameResultWriter, commandLineArguments);
         }
 
-        private static void RunGames(ILoggerWrap logger, IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, IGameResultWriter gameResultWriter, ICommandLineArguments commandLineArguments)
+        private static void RunGames(IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, IGameResultWriter gameResultWriter, ICommandLineArguments commandLineArguments)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -66,7 +62,7 @@ namespace SimpleSolitare
                 cancellationTokenSource.Cancel();
             };
 
-            logger.LogInformation($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
+            Console.WriteLine($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
 
             gameRunner.StartGames(games, GameCallback, cancellationTokenSource.Token);
 
@@ -89,13 +85,13 @@ namespace SimpleSolitare
 
             if (gameRunner.Result == null)
             {
-                logger.LogError($"Game runner result was null.");
+                Console.WriteLine($"Game runner result was null.");
                 return;
             }
 
-            logger.LogInformation($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
+            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
 
-            WriteWins(logger, gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
+            WriteWins(gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
         }
 
         private static IGame[] ConfigureGames(IDeckProvider deckProvider, IPlayer player, int gameCount)
@@ -125,7 +121,7 @@ namespace SimpleSolitare
             }
         }
 
-        private static void WriteWins(ILoggerWrap logger, IGameResultWriter gameResultWriter, IGameResult[] wins, ICommandLineArguments commandLineArguments)
+        private static void WriteWins(IGameResultWriter gameResultWriter, IGameResult[] wins, ICommandLineArguments commandLineArguments)
         {
             if (commandLineArguments.WinOutputPath == null)
             {
@@ -134,13 +130,13 @@ namespace SimpleSolitare
 
             if (wins.Length < 1)
             {
-                logger.LogInformation("\r\nNo wins to write.");
+                Console.WriteLine("\r\nNo wins to write.");
                 return;
             }
 
             gameResultWriter.Open(commandLineArguments.WinOutputPath);
 
-            logger.LogInformation($"\r\nWriting wins to '{commandLineArguments.WinOutputPath}'...");
+            Console.WriteLine($"\r\nWriting wins to '{commandLineArguments.WinOutputPath}'...");
 
             try
             {
@@ -149,7 +145,7 @@ namespace SimpleSolitare
                     gameResultWriter.Write(wins[i]);
                 }
 
-                logger.LogInformation($"Done writing wins.");
+                Console.WriteLine($"Done writing wins.");
             }
             finally
             {
