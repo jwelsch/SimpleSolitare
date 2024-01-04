@@ -15,6 +15,9 @@
     "games-1000-win-output": {
       "commandName": "Project",
       "commandLineArgs": "--count 1000 --win-output-path \"C:\\Temp\\win-output.txt\""
+    },
+    "no-arguments": {
+      "commandName": "Project"
     }
   }
 }
