@@ -2,7 +2,7 @@
 
 namespace SimpleSolitare.Wraps
 {
-    public interface ILoggerFactoryWrap
+    public interface ILoggerFactoryWrap : IDisposable
     {
         ILoggerWrap<T> CreateLogger<T>();
     }
@@ -19,6 +19,13 @@ namespace SimpleSolitare.Wraps
         public ILoggerWrap<T> CreateLogger<T>()
         {
             return new LoggerWrap<T>(_loggerFactory.CreateLogger<T>());
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            _loggerFactory.Dispose();
         }
     }
 }

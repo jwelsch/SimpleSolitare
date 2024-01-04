@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleSolitare.DependencyInjection;
+using SimpleSolitare.Wraps;
 
 namespace SimpleSolitare
 {
@@ -39,9 +40,10 @@ namespace SimpleSolitare
         {
             var serviceProvider = RegisterAppServices();
 
-            var gameCount = 100;
+            var gameCount = 1000;
 
-            var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<Program>();
+            using var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactoryWrap>();
+            var logger = loggerFactory.CreateLogger<Program>();
 
             var deckProvider = serviceProvider.GetRequiredService<IDeckProvider>();
             var player = serviceProvider.GetRequiredService<IPlayer>();
@@ -51,7 +53,7 @@ namespace SimpleSolitare
             RunGames(logger, deckProvider, player, runner, gameCount);
         }
 
-        private static void RunGames(ILogger logger, IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, int gameCount)
+        private static void RunGames(ILoggerWrap logger, IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, int gameCount)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -62,8 +64,7 @@ namespace SimpleSolitare
                 cancellationTokenSource.Cancel();
             };
 
-            logger.LogInformation($"Starting {gameCount} games.");
-            logger.LogInformation($"Press 'X' to exit.");
+            logger.LogInformation($"Starting {gameCount} games. Press 'X' to exit.");
 
             gameRunner.StartGames(games, GameCallback, cancellationTokenSource.Token);
 
@@ -84,7 +85,23 @@ namespace SimpleSolitare
                 Thread.Sleep(100);
             }
 
-            logger.LogInformation($"Finished {gameCount} games.");
+            if (gameRunner.Result == null)
+            {
+                logger.LogError($"Game runner result was null.");
+                return;
+            }
+
+            logger.LogInformation($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
+
+            //for (var i = 0; i < gameRunner.Result.Wins.Length; i++)
+            //{
+            //    logger.LogInformation($"Win {i + 1}:");
+            //    for (var j = 0; j < gameRunner.Result.Wins[i].Deck.Count; j++)
+            //    {
+            //        var count = (j + 1) % 10;
+            //        logger.LogInformation($"  {(count == 0 ? 10 : count)}: {gameRunner.Result.Wins[i].Deck[j]}");
+            //    }
+            //}
         }
 
         private static IGame[] ConfigureGames(IDeckProvider deckProvider, IPlayer player, int gameCount)
@@ -95,6 +112,7 @@ namespace SimpleSolitare
             {
                 var deck = deckProvider.GetShuffledDeck();
                 var game = new Game(i + 1, player, deck);
+
                 games.Add(game);
             }
 
@@ -105,6 +123,7 @@ namespace SimpleSolitare
         {
             if (result.Outcome == GameOutcome.Win)
             {
+
                 Console.WriteLine($"Game {result.GameId} won.");
             }
             else if (result.Outcome == GameOutcome.Loss)

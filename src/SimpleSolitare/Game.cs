@@ -1,4 +1,6 @@
-﻿namespace SimpleSolitare
+﻿using System.Text;
+
+namespace SimpleSolitare
 {
     public interface IGame
     {
@@ -33,6 +35,11 @@
         public void Play()
         {
             Result = Player.Play(Id, Deck);
+        }
+
+        public override string ToString()
+        {
+            return $"Game {Id} {Deck}";
         }
     }
 }

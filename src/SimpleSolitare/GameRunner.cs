@@ -7,6 +7,8 @@ namespace SimpleSolitare
         void StartGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken);
 
         bool IsRunning { get; }
+
+        IGameRunnerResult? Result { get; }
     }
 
     public class GameRunner : IGameRunner
@@ -15,11 +17,14 @@ namespace SimpleSolitare
 
         public bool IsRunning => _isRunning;
 
+        public IGameRunnerResult? Result { get; private set; }
+
         public void StartGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken)
         {
-            var threadStart = new ParameterizedThreadStart(results =>
+            var threadStart = new ThreadStart(() =>
             {
-                results = PlayGames(games, callback, cancellationToken);
+                Result = PlayGames(games, callback, cancellationToken);
+                _isRunning = false;
             });
 
             var worker = new Thread(threadStart);
@@ -28,12 +33,13 @@ namespace SimpleSolitare
 
             _isRunning = true;
 
-            worker.Start(results);
+            worker.Start();
         }
 
-        private IGameResult[] PlayGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken)
+        private IGameRunnerResult PlayGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken)
         {
-            var results = new ConcurrentBag<IGameResult>();
+            var losses = new ConcurrentBag<IGameResult>();
+            var wins = new ConcurrentBag<IGameResult>();
 
             var parallelResult = Parallel.ForEach(games, game =>
             {
@@ -44,16 +50,23 @@ namespace SimpleSolitare
 
                 game.Play();
 
-                results.Add(game.Result!);
+                if (game.Result == null)
+                {
+
+                }
+                else if (game.Result.Outcome == GameOutcome.Loss)
+                {
+                    losses.Add(game.Result);
+                }
+                else if (game.Result.Outcome == GameOutcome.Win)
+                {
+                    wins.Add(game.Result);
+                }
 
                 callback(game.Result!);
             });
 
-            var gameResults = results.ToArray();
-
-            _isRunning = false;
-
-            return gameResults;
+            return new GameRunnerResult(losses.ToArray(), wins.ToArray());
         }
     }
 }

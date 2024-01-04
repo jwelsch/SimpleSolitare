@@ -7,7 +7,7 @@ namespace SimpleSolitare.DependencyInjection
     {
         protected override void Load(IServiceCollection services, object[]? parameters = null)
         {
-            services.AddTransient<ILoggerFactoryWrap, LoggerFactoryWrap>();
+            services.AddSingleton<ILoggerFactoryWrap, LoggerFactoryWrap>();
             services.AddTransient<IDeckProvider, DeckProvider>();
             services.AddTransient<IRngFactory, RngFactory>();
             services.AddTransient<IDeckShuffler, DeckShuffler>();
