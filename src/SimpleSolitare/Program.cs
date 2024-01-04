@@ -38,17 +38,26 @@ namespace SimpleSolitare
 
         private static void Main(string[] args)
         {
-            var serviceProvider = RegisterAppServices();
+            try
+            {
+                var serviceProvider = RegisterAppServices();
 
-            var commandLineProcessor = serviceProvider.GetRequiredService<ICommandLineProcessor>();
-            var deckProvider = serviceProvider.GetRequiredService<IDeckProvider>();
-            var player = serviceProvider.GetRequiredService<IPlayer>();
-            var runner = serviceProvider.GetRequiredService<IGameRunner>();
-            var gameResultWriter = serviceProvider.GetRequiredService<IGameResultWriter>();
+                var commandLineProcessor = serviceProvider.GetRequiredService<ICommandLineProcessor>();
+                var deckProvider = serviceProvider.GetRequiredService<IDeckProvider>();
+                var player = serviceProvider.GetRequiredService<IPlayer>();
+                var runner = serviceProvider.GetRequiredService<IGameRunner>();
+                var gameResultWriter = serviceProvider.GetRequiredService<IGameResultWriter>();
 
-            var commandLineArguments = commandLineProcessor.Process(args) ?? throw new Exception($"Command line arguments object was null.");
+                var commandLineArguments = commandLineProcessor.Process(args) ?? throw new Exception($"Command line arguments object was null.");
 
-            RunGames(deckProvider, player, runner, gameResultWriter, commandLineArguments);
+                RunGames(deckProvider, player, runner, gameResultWriter, commandLineArguments);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(ex);
+                Console.WriteLine($"Caught exception:");
+                Console.WriteLine(ex);
+            }
         }
 
         private static void RunGames(IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, IGameResultWriter gameResultWriter, ICommandLineArguments commandLineArguments)
