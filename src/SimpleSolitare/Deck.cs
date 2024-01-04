@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Text;
 
 namespace SimpleSolitare
 {
@@ -17,7 +18,12 @@ namespace SimpleSolitare
 
         public Deck(IList<ICard> cards)
         {
-            _cards = cards;
+            _cards = new List<ICard>();
+
+            for (var i = 0; i < cards.Count; i++)
+            {
+                _cards.Add(cards[i]);
+            }
         }
 
         public ICard this[int index]
@@ -78,6 +84,23 @@ namespace SimpleSolitare
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _cards.GetEnumerator();
+        }
+
+        public override string ToString()
+        {
+            var sample = Count;
+            var builder = new StringBuilder();
+            builder.Append('(');
+            for (var i = 0; i < sample; i++)
+            {
+                builder.Append(this[i]);
+                if (i < sample - 1)
+                {
+                    builder.Append(", ");
+                }
+            }
+            builder.Append(')');
+            return builder.ToString();
         }
     }
 }
