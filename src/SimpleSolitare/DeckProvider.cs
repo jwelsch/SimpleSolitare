@@ -1,13 +1,16 @@
-﻿using System.Collections;
-
-namespace SimpleSolitare
+﻿namespace SimpleSolitare
 {
-    public interface IDeck : IList<ICard>
+    public interface IDeckProvider
     {
+        IDeck GetReferenceDeck();
+
+        IDeck GetShuffledDeck();
     }
 
-    public class Deck : IDeck
+    public class DeckProvider : IDeckProvider
     {
+        private readonly IDeckShuffler _deckShuffler;
+
         public static readonly Deck Reference = new(new List<ICard>
         {
             new Card(Suit.Club, FaceValue.Ace),
@@ -64,76 +67,19 @@ namespace SimpleSolitare
             new Card(Suit.Spade, FaceValue.King)
         });
 
-        private readonly IList<ICard> _cards;
-
-        public Deck()
-            : this(new List<ICard>())
+        public DeckProvider(IDeckShuffler deckShuffler)
         {
+            _deckShuffler = deckShuffler;
         }
 
-        public Deck(IList<ICard> cards)
+        public IDeck GetReferenceDeck()
         {
-            _cards = cards;
+            return Reference;
         }
 
-        public ICard this[int index]
+        public IDeck GetShuffledDeck()
         {
-            get => _cards[index];
-            set => _cards[index] = value;
-        }
-
-        public int Count => _cards.Count;
-
-        public bool IsReadOnly => _cards.IsReadOnly;
-
-        public void Add(ICard card)
-        {
-            _cards.Add(card);
-        }
-
-        public void Clear()
-        {
-            _cards.Clear();
-        }
-
-        public bool Contains(ICard card)
-        {
-            return _cards.Contains(card);
-        }
-
-        public void CopyTo(ICard[] array, int arrayIndex)
-        {
-            _cards.CopyTo(array, arrayIndex);
-        }
-
-        public IEnumerator<ICard> GetEnumerator()
-        {
-            return _cards.GetEnumerator();
-        }
-
-        public int IndexOf(ICard card)
-        {
-            return _cards.IndexOf(card);
-        }
-
-        public void Insert(int index, ICard card)
-        {
-            _cards.Insert(index, card);
-        }
-
-        public bool Remove(ICard card)
-        {
-            return _cards.Remove(card);
-        }
-
-        public void RemoveAt(int index)
-        {
-            _cards.RemoveAt(index);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _cards.GetEnumerator();
+            return _deckShuffler.ShuffleNew(Reference);
         }
     }
 }

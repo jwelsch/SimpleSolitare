@@ -36,6 +36,9 @@ namespace SimpleSolitare
                 result |= _data[i];
             }
 
+            // Make sure result is greater than or equal to zero.
+            result &= 0xEFFF;
+
             return (result + min) % max;
         }
 
@@ -60,6 +63,9 @@ namespace SimpleSolitare
                 result <<= 8;
                 result |= _data[i];
             }
+
+            // Make sure result is greater than or equal to zero.
+            result &= 0xEFFFFFFF;
 
             return (result + min) % max;
         }

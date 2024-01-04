@@ -2,7 +2,9 @@
 {
     public interface IDeckShuffler
     {
-        void Shuffle(IDeck deck);
+        void ShuffleExisting(IDeck deck);
+
+        IDeck ShuffleNew(IDeck deck);
     }
 
     public class DeckShuffler : IDeckShuffler
@@ -14,9 +16,9 @@
             _rng = rng;
         }
 
-        public void Shuffle(IDeck deck)
+        public void ShuffleExisting(IDeck deck)
         {
-            var iterations = deck.Count * 21;
+            var iterations = deck.Count * 23;
             var max = deck.Count - 1;
 
             for (var i = 0; i < iterations; i++)
@@ -28,6 +30,15 @@
                 deck[slot1] = deck[slot2];
                 deck[slot2] = card;
             }
+        }
+
+        public IDeck ShuffleNew(IDeck deck)
+        {
+            var shuffled = new Deck(deck);
+
+            ShuffleExisting(shuffled);
+
+            return shuffled;
         }
     }
 }
