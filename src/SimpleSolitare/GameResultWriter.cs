@@ -14,7 +14,6 @@ namespace SimpleSolitare
     public class GameResultWriter : IGameResultWriter
     {
         private readonly IStreamWriterWrapFactory _streamWriterWrapFactory;
-        private readonly string? _filePath;
 
         private IStreamWriterWrap? _streamWriter;
 
@@ -63,7 +62,7 @@ namespace SimpleSolitare
             for (var i = 0; i < result.Deck.Count; i++)
             {
                 var count = (i + 1) % 10;
-                _streamWriter.WriteLine($"  {(count == 0 ? 10 : count)}: {result.Deck[i]}");
+                _streamWriter.WriteLine($"  {(count == 0 ? 10 : count):D2}: {result.Deck[i]}");
             }
 
             _streamWriter.WriteLine();

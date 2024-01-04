@@ -95,7 +95,7 @@ namespace SimpleSolitare
 
             logger.LogInformation($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
 
-            WriteWins(gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
+            WriteWins(logger, gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
         }
 
         private static IGame[] ConfigureGames(IDeckProvider deckProvider, IPlayer player, int gameCount)
@@ -117,7 +117,6 @@ namespace SimpleSolitare
         {
             if (result.Outcome == GameOutcome.Win)
             {
-
                 Console.WriteLine($"Game {result.GameId} won.");
             }
             else if (result.Outcome == GameOutcome.Loss)
@@ -126,15 +125,22 @@ namespace SimpleSolitare
             }
         }
 
-        private static void WriteWins(IGameResultWriter gameResultWriter, IGameResult[] wins, ICommandLineArguments commandLineArguments)
+        private static void WriteWins(ILoggerWrap logger, IGameResultWriter gameResultWriter, IGameResult[] wins, ICommandLineArguments commandLineArguments)
         {
-            if (commandLineArguments.WinOutputPath == null
-                || wins.Length <= 0)
+            if (commandLineArguments.WinOutputPath == null)
             {
                 return;
             }
 
+            if (wins.Length < 1)
+            {
+                logger.LogInformation("\r\nNo wins to write.");
+                return;
+            }
+
             gameResultWriter.Open(commandLineArguments.WinOutputPath);
+
+            logger.LogInformation($"\r\nWriting wins to '{commandLineArguments.WinOutputPath}'...");
 
             try
             {
@@ -142,6 +148,8 @@ namespace SimpleSolitare
                 {
                     gameResultWriter.Write(wins[i]);
                 }
+
+                logger.LogInformation($"Done writing wins.");
             }
             finally
             {
