@@ -19,7 +19,11 @@
                 }
 
                 count = (count + 1) % 10;
-                count = count == 0 ? 10 : count;
+
+                if (count == 0)
+                {
+                    count = 10;
+                }
             }
 
             return new GameResult(id, GameOutcome.Win, deck, count);
