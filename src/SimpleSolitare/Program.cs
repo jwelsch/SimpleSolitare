@@ -103,13 +103,11 @@ namespace SimpleSolitare
                     if (keyInfo.Key == ConsoleKey.X)
                     {
                         cancellationTokenSource.Cancel();
+                        break;
                     }
                 }
 
-                if (!cancellationTokenSource.IsCancellationRequested)
-                {
-                    Thread.Sleep(100);
-                }
+                Thread.Sleep(100);
             }
 
             var result = gameRunner.WaitForResult();
