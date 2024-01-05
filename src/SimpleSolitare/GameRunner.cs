@@ -4,7 +4,7 @@ namespace SimpleSolitare
 {
     public interface IGameRunner
     {
-        void StartGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken);
+        void StartGames(IPlayer player, int gameCount, Action<IGameResult> callback, CancellationToken cancellationToken);
 
         bool IsRunning { get; }
 
@@ -13,40 +13,49 @@ namespace SimpleSolitare
 
     public class GameRunner : IGameRunner
     {
+        private readonly IDeckProvider _deckProvider;
+
         private volatile bool _isRunning;
 
         public bool IsRunning => _isRunning;
 
+        public GameRunner(IDeckProvider deckProvider)
+        {
+            _deckProvider = deckProvider;
+        }
+
         public IGameRunnerResult? Result { get; private set; }
 
-        public void StartGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken)
+        public void StartGames(IPlayer player, int gameCount, Action<IGameResult> callback, CancellationToken cancellationToken)
         {
             var threadStart = new ThreadStart(() =>
             {
-                Result = PlayGames(games, callback, cancellationToken);
+                Result = PlayGames(player, gameCount, callback, cancellationToken);
                 _isRunning = false;
             });
 
             var worker = new Thread(threadStart);
 
-            var results = new IGameResult[games.Length];
+            var results = new IGameResult[gameCount];
 
             _isRunning = true;
 
             worker.Start();
         }
 
-        private IGameRunnerResult PlayGames(IGame[] games, Action<IGameResult> callback, CancellationToken cancellationToken)
+        private IGameRunnerResult PlayGames(IPlayer player, int gameCount, Action<IGameResult> callback, CancellationToken cancellationToken)
         {
             var losses = new ConcurrentBag<IGameResult>();
             var wins = new ConcurrentBag<IGameResult>();
 
-            var parallelResult = Parallel.ForEach(games, game =>
+            var parallelResult = Parallel.For(0, gameCount, i =>
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
+
+                var game = new Game(i + 1, player, _deckProvider.GetShuffledDeck());
 
                 game.Play();
 

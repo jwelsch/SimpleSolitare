@@ -64,8 +64,6 @@ namespace SimpleSolitare
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var games = ConfigureGames(deckProvider, player, commandLineArguments.GameCount);
-
             Console.CancelKeyPress += (o, e) =>
             {
                 cancellationTokenSource.Cancel();
@@ -73,7 +71,7 @@ namespace SimpleSolitare
 
             Console.WriteLine($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
 
-            gameRunner.StartGames(games, GameCallback, cancellationTokenSource.Token);
+            gameRunner.StartGames(player, commandLineArguments.GameCount, GameCallback, cancellationTokenSource.Token);
 
             while (!cancellationTokenSource.IsCancellationRequested
                 && gameRunner.IsRunning)
@@ -101,21 +99,6 @@ namespace SimpleSolitare
             Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
 
             WriteWins(gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
-        }
-
-        private static IGame[] ConfigureGames(IDeckProvider deckProvider, IPlayer player, int gameCount)
-        {
-            var games = new List<Game>();
-
-            for (var i = 0; i < gameCount; i++)
-            {
-                var deck = deckProvider.GetShuffledDeck();
-                var game = new Game(i + 1, player, deck);
-
-                games.Add(game);
-            }
-
-            return games.ToArray();
         }
 
         private static void GameCallback(IGameResult result)
