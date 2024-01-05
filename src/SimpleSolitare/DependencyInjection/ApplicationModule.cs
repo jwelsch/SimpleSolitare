@@ -19,6 +19,7 @@ namespace SimpleSolitare.DependencyInjection
             services.AddTransient<IRngFactory, RngFactory>();
             services.AddTransient<IDeckShuffler, DeckShuffler>();
             services.AddTransient<IPlayer, Player>();
+            services.AddTransient<IStatistician, Statistician>();
             services.AddTransient<IGameManager, GameManager>();
             services.AddTransient<IGameRunner, GameRunner>();
             services.AddTransient<IGameResultWriter, GameResultWriter>();

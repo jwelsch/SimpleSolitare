@@ -4,7 +4,7 @@ namespace SimpleSolitare
 {
     public interface IGameManager
     {
-        IGameRunnerResult? RunGames(ICommandLineArguments commandLineArguments, object? gameCompletedContext);
+        IGameManagerResult? RunGames(ICommandLineArguments commandLineArguments, object? gameCompletedContext);
     }
 
     public class GameManager : IGameManager
@@ -14,19 +14,23 @@ namespace SimpleSolitare
         private readonly IOutputWriter _outputWriter;
         private readonly IPlayer _player;
         private readonly IGameRunner _gameRunner;
+        private readonly IStatistician _statistician;
 
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public GameManager(IInputMonitor inputMonitor, IOutputWriter outputWriter, IPlayer player, IGameRunner gameRunner)
+        public GameManager(IInputMonitor inputMonitor, IOutputWriter outputWriter, IPlayer player, IGameRunner gameRunner, IStatistician statistician)
         {
             _inputMonitor = inputMonitor;
             _outputWriter = outputWriter;
             _player = player;
             _gameRunner = gameRunner;
+            _statistician = statistician;
         }
 
-        public IGameRunnerResult? RunGames(ICommandLineArguments commandLineArguments, object? gameCompletedContext)
+        public IGameManagerResult? RunGames(ICommandLineArguments commandLineArguments, object? gameCompletedContext)
         {
+            _outputWriter.WriteLine($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
+
             _cancellationTokenSource = new CancellationTokenSource();
 
             _inputMonitor.CancelRequested += OnCancelRequested;
@@ -34,9 +38,18 @@ namespace SimpleSolitare
 
             try
             {
+                var startTime = DateTime.Now;
+
                 _gameRunner.StartGames(_player, commandLineArguments.GameCount, GameCallback, gameCompletedContext, _cancellationTokenSource.Token);
 
-                return _gameRunner.WaitForResult();
+                _gameRunner.WaitForCompletion();
+
+                var duration = DateTime.Now - startTime;
+                var statistics = _statistician.GetStatistics();
+
+                _outputWriter.WriteLine($"\r\nFinished {statistics.TotalGames} games in {duration.TotalMilliseconds}ms. Lost {statistics.LossCount}. Won {statistics.WinCount}.");
+
+                return new GameManagerResult(duration, _statistician.GetStatistics());
             }
             finally
             {
@@ -59,6 +72,8 @@ namespace SimpleSolitare
         {
             if (result.Outcome == GameOutcome.Win)
             {
+                _statistician.AddWin();
+
                 _outputWriter.WriteLine($"Game {result.GameId} won.");
 
                 if (context != null
@@ -73,6 +88,8 @@ namespace SimpleSolitare
             }
             else if (result.Outcome == GameOutcome.Loss)
             {
+                _statistician.AddLoss(result.CardCount);
+
                 _outputWriter.WriteLine($"Game {result.GameId} lost after {result.CardCount} cards.");
             }
         }

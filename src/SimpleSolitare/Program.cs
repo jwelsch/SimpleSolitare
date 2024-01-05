@@ -37,17 +37,12 @@ namespace SimpleSolitare
 
         #endregion
 
-        private static readonly object _callbackSync = new();
-
         private static void Main(string[] args)
         {
-            IOutputWriter? outputWriter = null;
-
             try
             {
                 var serviceProvider = RegisterAppServices();
 
-                outputWriter = serviceProvider.GetRequiredService<IOutputWriter>();
                 var commandLineProcessor = serviceProvider.GetRequiredService<ICommandLineProcessor>();
                 var streamWriterWrapFactory = serviceProvider.GetRequiredService<IStreamWriterWrapFactory>();
                 var gameManager = serviceProvider.GetRequiredService<IGameManager>();
@@ -58,13 +53,13 @@ namespace SimpleSolitare
 
                 var callbackContext = new CallbackContext(commandLineArguments, resultWriter);
 
-                RunGames(outputWriter, gameManager, commandLineArguments, callbackContext);
+                gameManager.RunGames(commandLineArguments, callbackContext);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine(ex);
-                outputWriter?.WriteLine($"Caught exception:");
-                outputWriter?.WriteLine(ex);
+                Console.WriteLine($"Caught exception:");
+                Console.WriteLine(ex);
             }
         }
 
@@ -80,21 +75,6 @@ namespace SimpleSolitare
             writer.Open(winOutputPath);
 
             return writer;
-        }
-
-        private static void RunGames(IOutputWriter outputWriter, IGameManager gameManager, ICommandLineArguments commandLineArguments, ICallbackContext callbackContext)
-        {
-            outputWriter.WriteLine($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
-
-            var result = gameManager.RunGames(commandLineArguments, callbackContext);
-
-            if (result == null)
-            {
-                outputWriter.WriteLine($"\r\nGame runner result was null.");
-                return;
-            }
-
-            outputWriter.WriteLine($"\r\nFinished {result.TotalGames} games in {result.TotalDuration.TotalMilliseconds}ms. Lost {result.Losses}. Won {result.Wins}.");
         }
     }
 }
