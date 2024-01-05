@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Text;
 
-namespace SimpleSolitare
+namespace SimpleSolitare.Models
 {
     public interface IDeck : IList<ICard>
     {

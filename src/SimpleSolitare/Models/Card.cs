@@ -1,4 +1,4 @@
-﻿namespace SimpleSolitare
+﻿namespace SimpleSolitare.Models
 {
     public enum Suit
     {
@@ -72,7 +72,7 @@
 
         public static Card operator >(Card left, Card right)
         {
-             return left.Value > right.Value ? left : right;
+            return left.Value > right.Value ? left : right;
         }
 
         public static Card operator <(Card left, Card right)
