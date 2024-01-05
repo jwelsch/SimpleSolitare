@@ -48,6 +48,8 @@ namespace SimpleSolitare
             var losses = new ConcurrentBag<IGameResult>();
             var wins = new ConcurrentBag<IGameResult>();
 
+            var startTime = DateTime.Now;
+
             var parallelResult = Parallel.For(0, gameCount, i =>
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -75,7 +77,9 @@ namespace SimpleSolitare
                 callback(game.Result!);
             });
 
-            return new GameRunnerResult(losses.ToArray(), wins.ToArray());
+            var duration = DateTime.Now - startTime;
+
+            return new GameRunnerResult(losses.ToArray(), wins.ToArray(), duration);
         }
     }
 }

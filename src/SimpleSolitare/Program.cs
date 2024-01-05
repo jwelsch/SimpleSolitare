@@ -96,7 +96,7 @@ namespace SimpleSolitare
                 return;
             }
 
-            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
+            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games in {gameRunner.Result.TotalDuration.TotalMilliseconds}ms. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
 
             WriteWins(gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
         }

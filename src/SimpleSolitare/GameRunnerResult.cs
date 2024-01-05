@@ -7,6 +7,8 @@
         IGameResult[] Wins { get; }
 
         int TotalGames { get; }
+
+        TimeSpan TotalDuration { get; }
     }
 
     public class GameRunnerResult : IGameRunnerResult
@@ -17,10 +19,13 @@
 
         public int TotalGames => Losses.Length + Wins.Length;
 
-        public GameRunnerResult(IGameResult[] losses, IGameResult[] wins)
+        public TimeSpan TotalDuration { get; }
+
+        public GameRunnerResult(IGameResult[] losses, IGameResult[] wins, TimeSpan totalDuration)
         {
             Losses = losses;
             Wins = wins;
+            TotalDuration = totalDuration;
         }
     }
 }
