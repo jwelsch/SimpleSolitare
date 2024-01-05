@@ -15,7 +15,7 @@
             {
                 if (count == (int)deck[i].Value)
                 {
-                    return new GameResult(id, GameOutcome.Loss, deck, count);
+                    return new GameResult(id, GameOutcome.Loss, deck, i + 1);
                 }
 
                 count = (count + 1) % 10;
