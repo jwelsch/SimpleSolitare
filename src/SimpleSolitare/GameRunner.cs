@@ -15,9 +15,9 @@ namespace SimpleSolitare
     {
         private readonly IDeckProvider _deckProvider;
 
-        private volatile bool _isRunning;
+        private Thread? _worker;
 
-        public bool IsRunning => _isRunning;
+        public bool IsRunning => _worker?.IsAlive ?? false;
 
         public GameRunner(IDeckProvider deckProvider)
         {
@@ -31,16 +31,13 @@ namespace SimpleSolitare
             var threadStart = new ThreadStart(() =>
             {
                 Result = PlayGames(player, gameCount, callback, callbackContext, cancellationToken);
-                _isRunning = false;
             });
 
-            var worker = new Thread(threadStart);
+            _worker = new Thread(threadStart);
 
             var results = new IGameResult[gameCount];
 
-            _isRunning = true;
-
-            worker.Start();
+            _worker.Start();
         }
 
         private IGameRunnerResult PlayGames(IPlayer player, int gameCount, Action<object?, IGameResult> callback, object? callbackContext, CancellationToken cancellationToken)
