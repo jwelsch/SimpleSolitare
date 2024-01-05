@@ -13,10 +13,13 @@ namespace SimpleSolitare.DependencyInjection
 
             // Application
             services.AddTransient<ICommandLineProcessor, CommandLineProcessor>();
+            services.AddTransient<IInputMonitor, ConsoleMonitor>();
+            services.AddTransient<IOutputWriter, ConsoleWriter>();
             services.AddTransient<IDeckProvider, DeckProvider>();
             services.AddTransient<IRngFactory, RngFactory>();
             services.AddTransient<IDeckShuffler, DeckShuffler>();
             services.AddTransient<IPlayer, Player>();
+            services.AddTransient<IGameManager, GameManager>();
             services.AddTransient<IGameRunner, GameRunner>();
             services.AddTransient<IGameResultWriter, GameResultWriter>();
         }

@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace SimpleSolitare
+﻿namespace SimpleSolitare.Models
 {
     public interface IGame
     {

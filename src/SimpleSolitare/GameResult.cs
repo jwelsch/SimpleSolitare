@@ -1,4 +1,6 @@
-﻿namespace SimpleSolitare
+﻿using SimpleSolitare.Models;
+
+namespace SimpleSolitare
 {
     public enum GameOutcome
     {
