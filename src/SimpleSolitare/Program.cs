@@ -49,6 +49,11 @@ namespace SimpleSolitare
 
                 var commandLineArguments = commandLineProcessor.Process(args) ?? throw new Exception($"Command line arguments object was null.");
 
+                if (commandLineArguments.GameCount < 1)
+                {
+                    Console.WriteLine($"The number of games must be greater than or equal to 1.");
+                }
+
                 using var resultWriter = CreateResultWriter(streamWriterWrapFactory, commandLineArguments.WinOutputPath);
 
                 var callbackContext = new CallbackContext(commandLineArguments, resultWriter);
