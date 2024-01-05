@@ -1,5 +1,9 @@
 {
   "profiles": {
+    "games-10": {
+      "commandName": "Project",
+      "commandLineArgs": "--count 10"
+    },
     "games-100": {
       "commandName": "Project",
       "commandLineArgs": "--count 100"
@@ -23,6 +27,14 @@
     "games-10000-win-output": {
       "commandName": "Project",
       "commandLineArgs": "--count 10000 --win-output-path \"C:\\Temp\\win-output.txt\""
+    },
+    "games-100000": {
+      "commandName": "Project",
+      "commandLineArgs": "--count 100000"
+    },
+    "games-1000000": {
+      "commandName": "Project",
+      "commandLineArgs": "--count 1000000"
     },
     "no-arguments": {
       "commandName": "Project"

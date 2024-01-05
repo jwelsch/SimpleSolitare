@@ -6,6 +6,16 @@
 
     public class ConsoleWriter : IConsoleWriter
     {
+        public void Write(string? value)
+        {
+            Console.Write(value);
+        }
+
+        public void Write(object? value)
+        {
+            Console.Write(value);
+        }
+
         public void WriteLine(string? text)
         {
             Console.WriteLine(text);

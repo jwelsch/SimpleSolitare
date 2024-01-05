@@ -7,6 +7,12 @@
         void AddLoss(int cardCount);
 
         IGameStatistics GetStatistics();
+
+        int WinCount { get; }
+
+        int LossCount { get; }
+
+        int TotalGames { get; }
     }
 
     public class Statistician : IStatistician
@@ -14,10 +20,14 @@
         private readonly object _lossLock = new();
 
         private int _winCount;
-        private int _lossCount;
-        private long _lossCardCount;
-        private int _leastLossCardCount = int.MaxValue;
-        private int _greatestLossCardCount;
+        private List<int> _lossCardCounts = new();
+        private long _lossCardTotalCount;
+
+        public int WinCount => _winCount;
+
+        public int LossCount => _lossCardCounts.Count;
+
+        public int TotalGames => WinCount + LossCount;
 
         public void AddWin()
         {
@@ -28,24 +38,14 @@
         {
             lock (_lossLock)
             {
-                _lossCount++;
-                _lossCardCount += cardCount;
-
-                if (cardCount > _leastLossCardCount)
-                {
-                    _leastLossCardCount = cardCount;
-                }
-
-                if (cardCount > _greatestLossCardCount)
-                {
-                    _greatestLossCardCount = cardCount;
-                }
+                _lossCardCounts.Add(cardCount);
+                _lossCardTotalCount += cardCount;
             }
         }
 
         public IGameStatistics GetStatistics()
         {
-            return new GameStatistics(_winCount, _lossCount, _lossCardCount, _leastLossCardCount, _greatestLossCardCount);
+            return new GameStatistics(_winCount, _lossCardCounts, _lossCardTotalCount);
         }
     }
 }
