@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SimpleSolitare.CommandLine;
 using SimpleSolitare.DependencyInjection;
+using SimpleSolitare.Wraps;
 
 namespace SimpleSolitare
 {
@@ -36,6 +37,8 @@ namespace SimpleSolitare
 
         #endregion
 
+        private static readonly object _callbackSync = new();
+
         private static void Main(string[] args)
         {
             try
@@ -43,14 +46,17 @@ namespace SimpleSolitare
                 var serviceProvider = RegisterAppServices();
 
                 var commandLineProcessor = serviceProvider.GetRequiredService<ICommandLineProcessor>();
-                var deckProvider = serviceProvider.GetRequiredService<IDeckProvider>();
                 var player = serviceProvider.GetRequiredService<IPlayer>();
                 var runner = serviceProvider.GetRequiredService<IGameRunner>();
-                var gameResultWriter = serviceProvider.GetRequiredService<IGameResultWriter>();
+                var streamWriterWrapFactory = serviceProvider.GetRequiredService<IStreamWriterWrapFactory>();
 
                 var commandLineArguments = commandLineProcessor.Process(args) ?? throw new Exception($"Command line arguments object was null.");
 
-                RunGames(deckProvider, player, runner, gameResultWriter, commandLineArguments);
+                using var resultWriter = CreateResultWriter(streamWriterWrapFactory, commandLineArguments.WinOutputPath);
+
+                var callbackContext = new CallbackContext(commandLineArguments, resultWriter);
+
+                RunGames(player, runner, commandLineArguments, callbackContext);
             }
             catch (Exception ex)
             {
@@ -60,7 +66,21 @@ namespace SimpleSolitare
             }
         }
 
-        private static void RunGames(IDeckProvider deckProvider, IPlayer player, IGameRunner gameRunner, IGameResultWriter gameResultWriter, ICommandLineArguments commandLineArguments)
+        private static IGameResultWriter? CreateResultWriter(IStreamWriterWrapFactory streamWriterWrapFactory, string? winOutputPath)
+        {
+            if (winOutputPath == null)
+            {
+                return null;
+            }
+
+            var writer = new GameResultWriter(streamWriterWrapFactory);
+
+            writer.Open(winOutputPath);
+
+            return writer;
+        }
+
+        private static void RunGames(IPlayer player, IGameRunner gameRunner, ICommandLineArguments commandLineArguments, ICallbackContext callbackContext)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -71,7 +91,7 @@ namespace SimpleSolitare
 
             Console.WriteLine($"Starting {commandLineArguments.GameCount} games. Press 'X' to exit.");
 
-            gameRunner.StartGames(player, commandLineArguments.GameCount, GameCallback, cancellationTokenSource.Token);
+            gameRunner.StartGames(player, commandLineArguments.GameCount, GameCallback, callbackContext, cancellationTokenSource.Token);
 
             while (!cancellationTokenSource.IsCancellationRequested
                 && gameRunner.IsRunning)
@@ -83,11 +103,13 @@ namespace SimpleSolitare
                     if (keyInfo.Key == ConsoleKey.X)
                     {
                         cancellationTokenSource.Cancel();
-                        break;
                     }
                 }
 
-                Thread.Sleep(100);
+                if (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    Thread.Sleep(100);
+                }
             }
 
             if (gameRunner.Result == null)
@@ -96,16 +118,24 @@ namespace SimpleSolitare
                 return;
             }
 
-            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games in {gameRunner.Result.TotalDuration.TotalMilliseconds}ms. Lost {gameRunner.Result.Losses.Length}. Won {gameRunner.Result.Wins.Length}.");
-
-            WriteWins(gameResultWriter, gameRunner.Result.Wins, commandLineArguments);
+            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games in {gameRunner.Result.TotalDuration.TotalMilliseconds}ms. Lost {gameRunner.Result.Losses}. Won {gameRunner.Result.Wins}.");
         }
 
-        private static void GameCallback(IGameResult result)
+        private static void GameCallback(object? context, IGameResult result)
         {
             if (result.Outcome == GameOutcome.Win)
             {
                 Console.WriteLine($"Game {result.GameId} won.");
+
+                if (context != null
+                    && context is ICallbackContext callbackContext
+                    && callbackContext.ResultWriter != null)
+                {
+                    lock (_callbackSync)
+                    {
+                        callbackContext.ResultWriter.Write(result);
+                    }
+                }
             }
             else if (result.Outcome == GameOutcome.Loss)
             {

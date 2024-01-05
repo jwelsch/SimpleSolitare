@@ -2,9 +2,9 @@
 {
     public interface IGameRunnerResult
     {
-        IGameResult[] Losses { get; }
+        int Losses { get; }
 
-        IGameResult[] Wins { get; }
+        int Wins { get; }
 
         int TotalGames { get; }
 
@@ -13,15 +13,15 @@
 
     public class GameRunnerResult : IGameRunnerResult
     {
-        public IGameResult[] Losses { get; }
+        public int Losses { get; }
 
-        public IGameResult[] Wins { get; }
+        public int Wins { get; }
 
-        public int TotalGames => Losses.Length + Wins.Length;
+        public int TotalGames => Losses + Wins;
 
         public TimeSpan TotalDuration { get; }
 
-        public GameRunnerResult(IGameResult[] losses, IGameResult[] wins, TimeSpan totalDuration)
+        public GameRunnerResult(int losses, int wins, TimeSpan totalDuration)
         {
             Losses = losses;
             Wins = wins;
