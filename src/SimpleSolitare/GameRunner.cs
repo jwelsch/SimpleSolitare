@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace SimpleSolitare
+﻿namespace SimpleSolitare
 {
     public interface IGameRunner
     {
@@ -8,7 +6,7 @@ namespace SimpleSolitare
 
         bool IsRunning { get; }
 
-        IGameRunnerResult? Result { get; }
+        IGameRunnerResult? WaitForResult();
     }
 
     public class GameRunner : IGameRunner
@@ -16,6 +14,7 @@ namespace SimpleSolitare
         private readonly IDeckProvider _deckProvider;
 
         private Thread? _worker;
+        private IGameRunnerResult? _result;
 
         public bool IsRunning => _worker?.IsAlive ?? false;
 
@@ -24,13 +23,18 @@ namespace SimpleSolitare
             _deckProvider = deckProvider;
         }
 
-        public IGameRunnerResult? Result { get; private set; }
+        public IGameRunnerResult? WaitForResult()
+        {
+            _worker?.Join();
+
+            return _result;
+        }
 
         public void StartGames(IPlayer player, int gameCount, Action<object?, IGameResult> callback, object? callbackContext, CancellationToken cancellationToken)
         {
             var threadStart = new ThreadStart(() =>
             {
-                Result = PlayGames(player, gameCount, callback, callbackContext, cancellationToken);
+                _result = PlayGames(player, gameCount, callback, callbackContext, cancellationToken);
             });
 
             _worker = new Thread(threadStart);
@@ -47,7 +51,7 @@ namespace SimpleSolitare
 
             var startTime = DateTime.Now;
 
-            var parallelResult = Parallel.For(0, gameCount, i =>
+            Parallel.For(0, gameCount, i =>
             {
                 if (cancellationToken.IsCancellationRequested)
                 {

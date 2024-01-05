@@ -98,7 +98,7 @@ namespace SimpleSolitare
             {
                 if (Console.KeyAvailable)
                 {
-                    var keyInfo = Console.ReadKey();
+                    var keyInfo = Console.ReadKey(true);
 
                     if (keyInfo.Key == ConsoleKey.X)
                     {
@@ -112,13 +112,15 @@ namespace SimpleSolitare
                 }
             }
 
-            if (gameRunner.Result == null)
+            var result = gameRunner.WaitForResult();
+
+            if (result == null)
             {
                 Console.WriteLine($"Game runner result was null.");
                 return;
             }
 
-            Console.WriteLine($"\r\nFinished {gameRunner.Result.TotalGames} games in {gameRunner.Result.TotalDuration.TotalMilliseconds}ms. Lost {gameRunner.Result.Losses}. Won {gameRunner.Result.Wins}.");
+            Console.WriteLine($"\r\nFinished {result.TotalGames} games in {result.TotalDuration.TotalMilliseconds}ms. Lost {result.Losses}. Won {result.Wins}.");
         }
 
         private static void GameCallback(object? context, IGameResult result)
